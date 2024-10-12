@@ -32,8 +32,7 @@ namespace CFSearch.Services
             SearchItemValues searchItem = new SearchItemValues()
             {
                 Condition = Condition.InValueList,
-                AndOrValues = AndOr.And,    // Default to all values must match
-                CaseSensitive = false,
+                AndOrValues = AndOr.And,    // Default to all values must match                
                 Values = new List<string>()
             };
             StringBuilder value = new StringBuilder("");
@@ -113,8 +112,7 @@ namespace CFSearch.Services
                             searchItem = new SearchItemValues()
                             {
                                 Condition = Condition.InValueList,
-                                AndOrValues = AndOr.And,    // Default to all values must match
-                                CaseSensitive = false,
+                                AndOrValues = AndOr.And,    // Default to all values must match                               
                                 Values = new List<string>()
                             };
                         }

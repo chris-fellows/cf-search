@@ -14,10 +14,10 @@ namespace CFSearch.Models
         ///// </summary>
         //public AndOr AndOrValues { get; set; } = AndOr.Or;
 
-        /// <summary>
-        /// Case sensitivity settings
-        /// </summary>
-        public bool CaseSensitive { get; set; } = false;
+        ///// <summary>
+        ///// Case sensitivity settings
+        ///// </summary>
+        //public bool CaseSensitive { get; set; } = false;
 
         /// <summary>
         /// Values

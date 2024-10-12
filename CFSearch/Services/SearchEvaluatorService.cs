@@ -7,7 +7,7 @@ namespace CFSearch.Services
 {
     public class SearchEvaluatorService : ISearchEvaluatorService
     {
-        public bool IsMatches(SearchOptions searchOptions, string text)
+        public bool IsMatches(SearchOptions searchOptions, string text, bool caseSensitive)
         {            
             int countMatches = 0;
             int countNotMatches = 0;
@@ -16,8 +16,8 @@ namespace CFSearch.Services
                 // Evaluate search item
                 var isMatched = searchItem switch
                 {
-                    SearchItemRegEx => IsMatchesItem((SearchItemRegEx)searchItem, text),
-                    SearchItemValues => IsMatchesItem((SearchItemValues)searchItem, text),
+                    SearchItemRegEx => IsMatchesItem((SearchItemRegEx)searchItem, text, caseSensitive),
+                    SearchItemValues => IsMatchesItem((SearchItemValues)searchItem, text, caseSensitive),
                     _ => false
                 };
 
@@ -42,7 +42,7 @@ namespace CFSearch.Services
         /// <param name="searchItem"></param>
         /// <param name="text"></param>
         /// <returns></returns>
-        private bool IsMatchesItem(SearchItemRegEx searchItem, string text)
+        private bool IsMatchesItem(SearchItemRegEx searchItem, string text, bool caseSensitive)
         {
             Regex regex = new Regex(searchItem.Expression);
 
@@ -63,7 +63,7 @@ namespace CFSearch.Services
         /// <param name="searchItem"></param>
         /// <param name="text"></param>
         /// <returns></returns>
-        private bool IsMatchesItem(SearchItemValues searchItem, string text)
+        private bool IsMatchesItem(SearchItemValues searchItem, string text, bool caseSensitive)
         {
             bool isMatches = false;
      
@@ -76,7 +76,7 @@ namespace CFSearch.Services
 
                         foreach (var value in searchItem.Values)
                         {
-                            if (searchItem.CaseSensitive)
+                            if (caseSensitive)
                             {
                                 if (text.Contains(value))
                                 {
@@ -117,7 +117,7 @@ namespace CFSearch.Services
                         // Values=[Word1,Word2] Text="This is Word4 and something else"
                         foreach (var value in searchItem.Values)
                         {
-                            if (searchItem.CaseSensitive)
+                            if (caseSensitive)
                             {
                                 if (text.Contains(value))
                                 {
