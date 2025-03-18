@@ -2,18 +2,19 @@
 
 namespace CFSearch.Models
 {
+    /// <summary>
+    /// Base for search item
+    /// </summary>
     public abstract class SearchItemBase
-    {   
+    {          
         /// <summary>
-        /// Condition
+        /// Whether value matches search item
         /// </summary>
-        public Condition Condition { get; set; } = Condition.InValueList;
-
-        /// <summary>
-        /// How to match values:
-        /// And - All values need to match. Typically for "Word1 Word2 Word3"
-        /// Or - Any value needs to match. Typically for "(Word1,Word2,Word3)"                
-        /// </summary>
-        public AndOr AndOrValues { get; set; } = AndOr.Or;
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public virtual bool IsValueMatches(string value, bool caseSensitive)
+        {
+            return false;
+        }
     }
 }

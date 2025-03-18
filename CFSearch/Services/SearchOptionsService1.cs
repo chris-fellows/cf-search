@@ -9,13 +9,23 @@ using System.Threading.Tasks;
 
 namespace CFSearch.Services
 {
-    public class SearchOptionsService : ISearchOptionsService
+    /// <summary>
+    /// Search options format 1:
+    /// 
+    /// Formats:
+    /// "word1" = Contains word.
+    /// "-word1" = Does not contain word.
+    /// "(word1,word2)" = Contains any word word.
+    /// "-(word1,word2)" = Does not contain any word
+    /// 
+    /// </summary>
+    public class SearchOptionsService1 : ISearchOptionsService
     {
         private readonly SearchConfig _searchConfig;
         private const string _regExMatchesPrefix = "#REGEXMATCHES#";
         private const string _regExNotMatchesPrefix = "#REGEXNOTMATCHES#";
 
-        public SearchOptionsService(SearchConfig searchConfig)
+        public SearchOptionsService1(SearchConfig searchConfig)
         {
             _searchConfig = searchConfig;
         }
@@ -25,19 +35,22 @@ namespace CFSearch.Services
         /// </summary>
         /// <param name="search"></param>
         /// <returns></returns>
-        private SearchOptions GetValues(string search)
-        {
-            var searchOptions = new SearchOptions() { Items = new List<SearchItemBase>(), AndOrItems = AndOr.And };
-
-            SearchItemValues searchItem = new SearchItemValues()
-            {
-                Condition = Condition.InValueList,
-                AndOrValues = AndOr.And,    // Default to all values must match                
-                Values = new List<string>()
-            };
+        private SearchOptions GetValues(string search, bool caseSensitive)
+        {          
             StringBuilder value = new StringBuilder("");
             bool isQuotesActive = false;
             bool isListActive = false;
+
+            // Search single group
+            var searchItemGroup = new SearchItemGroup()
+            {
+                Items = new(),
+                AndOrItems = AndOr.Or
+            };
+
+            // Set current values to accumulate
+            var values = new List<string>();
+            var valuesCondition = Condition.InValueList;
 
             // Process characters
             for (int charIndex = 0; charIndex < search.Length; charIndex++)
@@ -45,9 +58,7 @@ namespace CFSearch.Services
                 // Get current & next char
                 Char character = search[charIndex];
                 Char? nextCharacter = charIndex < search.Length - 1 ? search[charIndex + 1] : null;
-
-                //Console.WriteLine($"Processing char #{charIndex} {character}");
-
+    
                 // Whether to add character to value. If it's one of the special characters then we change to false.
                 bool isAddCharacterToValue = true;  // Default;
 
@@ -58,8 +69,8 @@ namespace CFSearch.Services
                     {
                         // Add value to list
                         if (value.Length > 0)
-                        {
-                            searchItem.Values.Add(value.ToString());
+                        {                            
+                            values.Add(value.ToString());
                             value.Length = 0;
                         }
                         isQuotesActive = false;
@@ -70,29 +81,15 @@ namespace CFSearch.Services
                 {
                     // Check character
                     if (character == _searchConfig.ExcludeChar)
-                    {
-                        searchItem.Condition = Condition.NotInValueList;
+                    {                        
+                        valuesCondition = Condition.NotInValueList;
                         isAddCharacterToValue = false;
                     }
 
                     if (character == _searchConfig.ListStartChar)
                     {
-                        isListActive = true;
-
-                        // Set how we evalulate values
-                        switch (searchItem.Condition)
-                        {
-                            case Condition.InValueList:
-                                // Search="(Word1,Word2,Word3)", Text="This text contains Word1"
-                                searchItem.AndOrValues = AndOr.Or;  // Text contains any value from list
-                                break;
-                            case Condition.NotInValueList:
-                                // Search="-(Word1,Word2,Word3)", Text="This text contains Word4"
-                                searchItem.AndOrValues = AndOr.Or; // Text does not contain any of the words
-                                break;
-                        }
-
-                        searchItem.Values.Clear();
+                        isListActive = true;    
+                        values = new();
                         isAddCharacterToValue = false;
                     }
 
@@ -102,20 +99,27 @@ namespace CFSearch.Services
 
                         // Add value to list
                         if (value.Length > 0)
-                        {
-                            searchItem.Values.Add(value.ToString());
+                        {                            
+                            values.Add(value.ToString());
                             value.Length = 0;
-                        }
-                        if (searchItem.Values.Any())
+                        }                        
+                        if (values.Any())
                         {
-                            searchOptions.Items.Add(searchItem);
-                            searchItem = new SearchItemValues()
+                            // Create search item of values
+                            var searchItemValues = new SearchItemValues()
                             {
-                                Condition = Condition.InValueList,
-                                AndOrValues = AndOr.And,    // Default to all values must match                               
-                                Values = new List<string>()
+                                Condition = valuesCondition,
+                                Values = values
                             };
+
+                            // Add to group
+                            searchItemGroup.Items.Add(searchItemValues);
                         }
+
+                        // Reset values                        
+                        values = new();
+                        valuesCondition = Condition.InValueList;
+
                         isAddCharacterToValue = false;
                     }
 
@@ -123,8 +127,8 @@ namespace CFSearch.Services
                     {
                         // Add value to list
                         if (value.Length > 0)
-                        {
-                            searchItem.Values.Add(value.ToString());
+                        {                            
+                            values.Add(value.ToString());
                             value.Length = 0;
                         }
                         isAddCharacterToValue = false;
@@ -135,7 +139,8 @@ namespace CFSearch.Services
                         // Add value to list
                         if (value.Length > 0)
                         {
-                            searchItem.Values.Add(value.ToString());
+                            //searchItem.Values.Add(value.ToString());
+                            values.Add(value.ToString());
                             value.Length = 0;
                         }
                         isAddCharacterToValue = false;
@@ -147,7 +152,8 @@ namespace CFSearch.Services
                         {
                             if (value.Length > 0)
                             {
-                                searchItem.Values.Add(value.ToString());
+                                //searchItem.Values.Add(value.ToString());
+                                values.Add(value.ToString());
                                 value.Length = 0;
                             }
 
@@ -173,57 +179,67 @@ namespace CFSearch.Services
             // If we have an active search item then add to list. If we processed "Word1 Word2" then this will add 
             if (value.Length > 0)
             {
-                searchItem.Values.Add(value.ToString());
+                values.Add(value.ToString());
                 value.Length = 0;
             }
 
             // Add any final search item
-            if (searchItem.Values.Any())
+            if (values.Any())
             {
-                searchOptions.Items.Add(searchItem);
+                var searchItemValues = new SearchItemValues()
+                {
+                    Condition = valuesCondition,
+                    Values = values,                    
+                };
+
+                searchItemGroup.Items.Add(searchItemValues);
             }
 
-            return searchOptions;
-
-        }
-
-        /// <summary>
-        /// Gets SearchOptions for regex
-        /// </summary>
-        /// <param name="search"></param>
-        /// <returns></returns>
-        private SearchOptions GetRegEx(string search)
-        {
-            var searchOptions = new SearchOptions() { Items = new List<SearchItemBase>(), AndOrItems = AndOr.And };
-
-            // Add search item
-            var searchItem = new SearchItemRegEx()
+            // If the group only has one child item then we could make that the root item
+            return new SearchOptions()
             {
-                AndOrValues = AndOr.And
+                CaseSensitive = caseSensitive,
+                RootSearchItem = searchItemGroup                
             };
-            searchOptions.Items.Add(searchItem);
-            
-            if (search.StartsWith(_regExMatchesPrefix))
-            {
-                searchItem.Condition = Condition.MatchesRegEx;
-                searchItem.Expression = search.Substring(_regExMatchesPrefix.Length + 1);
-            }
-            else if (search.StartsWith(_regExNotMatchesPrefix))
-            {
-                searchItem.Condition = Condition.NotMatchesRegEx;
-                searchItem.Expression = search.Substring(_regExNotMatchesPrefix.Length + 1);
-            }
-     
-            return searchOptions;
         }
 
-        public SearchOptions Get(string search)
+        ///// <summary>
+        ///// Gets SearchOptions for regex
+        ///// </summary>
+        ///// <param name="search"></param>
+        ///// <returns></returns>
+        //private SearchOptions GetRegEx(string search)
+        //{
+        //    var searchOptions = new SearchOptions() { Items = new List<SearchItemBase>(), AndOrItems = AndOr.And };
+
+        //    // Add search item
+        //    var searchItem = new SearchItemRegEx()
+        //    {
+        //        AndOrValues = AndOr.And
+        //    };
+        //    searchOptions.Items.Add(searchItem);
+            
+        //    if (search.StartsWith(_regExMatchesPrefix))
+        //    {
+        //        searchItem.Condition = Condition.MatchesRegEx;
+        //        searchItem.Expression = search.Substring(_regExMatchesPrefix.Length + 1);
+        //    }
+        //    else if (search.StartsWith(_regExNotMatchesPrefix))
+        //    {
+        //        searchItem.Condition = Condition.NotMatchesRegEx;
+        //        searchItem.Expression = search.Substring(_regExNotMatchesPrefix.Length + 1);
+        //    }
+     
+        //    return searchOptions;
+        //}
+
+        public SearchOptions Get(string search, bool caseSensitive)
         {
-            if (search.StartsWith(_regExMatchesPrefix) || search.StartsWith(_regExNotMatchesPrefix))
-            {
-                return GetRegEx(search);
-            }
-            return GetValues(search);
+            //if (search.StartsWith(_regExMatchesPrefix) || search.StartsWith(_regExNotMatchesPrefix))
+            //{
+            //    return GetRegEx(search);
+            //}
+            return GetValues(search, caseSensitive);
         }
     }
 }

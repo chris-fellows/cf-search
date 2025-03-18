@@ -14,6 +14,6 @@ namespace CFSearch.Interfaces
         /// <param name="text"></param>
         /// <param name="caseSensitive"></param>
         /// <returns></returns>
-        bool IsMatches(SearchOptions searchOptions, string text, bool caseSensitive);
+        bool IsMatches(SearchOptions searchOptions, string text);
     }
 }

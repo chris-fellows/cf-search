@@ -5,10 +5,11 @@ using CFSearch.Services;
 Char quotes = (Char)'"';
 
 var searchConfig = new SearchConfig();
-ISearchOptionsService searchOptionsService = new SearchOptionsService(searchConfig);
+ISearchOptionsService searchOptionsService = new SearchOptionsService1(searchConfig);
 ISearchEvaluatorService searchEvaluatorService = new SearchEvaluatorService();
 
-var result = searchOptionsService.Get("##REGEX## abcdeghij");
+//var result = searchOptionsService.Get("##REGEX## abcdeghij");
+//var options = searchOptionsService.Get("(one,two,five) (donkey,owl)");
 
 // Prompt user to search
 do
@@ -40,7 +41,7 @@ do
     else if (!String.IsNullOrEmpty(search))
     {
         var searchOptions = searchOptionsService.Get(search);
-        var textItemsMatches = textItems.Select(text => searchEvaluatorService.IsMatches(searchOptions, text)).ToList();
+        var textItemsMatches = textItems.Select(text => searchEvaluatorService.IsMatches(searchOptions, text, false)).ToList();
 
         // Write matched
         Console.WriteLine($"Search found {textItemsMatches.Count(i => i == true)} items:");

@@ -7,21 +7,36 @@ namespace CFSearch.Models
     /// </summary>
     public class SearchItemValues : SearchItemBase
     {
-        ///// <summary>
-        ///// How to match values:
-        ///// And - All values need to match. Typically for "Word1 Word2 Word3"
-        ///// Or - Any value needs to match. Typically for "(Word1,Word2,Word3)"                
-        ///// </summary>
-        //public AndOr AndOrValues { get; set; } = AndOr.Or;
-
-        ///// <summary>
-        ///// Case sensitivity settings
-        ///// </summary>
-        //public bool CaseSensitive { get; set; } = false;
+        /// <summary>
+        /// Condition
+        /// </summary>
+        public Condition Condition { get; set; } = Condition.InValueList;
 
         /// <summary>
         /// Values
         /// </summary>
         public List<string> Values { get; set; } = new List<string>();
+
+        public override bool IsValueMatches(string value, bool caseSensitive)
+        {
+            if (caseSensitive)
+            {
+                return Condition switch
+                {
+                    Condition.InValueList => Values.Any(vc => value.Contains(vc)),
+                    Condition.NotInValueList => !Values.Any(vc => value.Contains(vc)),
+                    _ => false
+                };
+            }
+            else
+            {
+                return Condition switch
+                {
+                    Condition.InValueList => Values.Any(vc => value.Contains(vc, StringComparison.InvariantCultureIgnoreCase)),
+                    Condition.NotInValueList => !Values.Any(vc => value.Contains(vc, StringComparison.InvariantCultureIgnoreCase)),
+                    _ => false
+                };
+            }
+        }
     }
 }

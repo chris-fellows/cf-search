@@ -8,15 +8,13 @@ namespace CFSearch.Models
     public class SearchOptions
     {
         /// <summary>
-        /// How to evaluate search items:
-        /// And - All search items must be valid.
-        /// Or - Any search item must be valid.
+        /// Whether case sensitive
         /// </summary>
-        public AndOr AndOrItems { get; set; } = AndOr.And;
+        public bool CaseSensitive { get; set; }
 
         /// <summary>
-        /// Search items
+        /// Root search item
         /// </summary>
-        public List<SearchItemBase> Items { get; set; } = new List<SearchItemBase>();
+        public SearchItemBase RootSearchItem = new SearchItemGroup() { };
     }
 }

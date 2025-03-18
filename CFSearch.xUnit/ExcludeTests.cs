@@ -33,7 +33,7 @@ namespace CFSearch.xUnit
         public void Search_One_Word_Finds_Items_Without_Word(bool caseSensitive)
         {
             var searchConfig = new SearchConfig();
-            ISearchOptionsService searchOptionsService = new SearchOptionsService(searchConfig);
+            ISearchOptionsService searchOptionsService = new SearchOptionsService1(searchConfig);            
             ISearchEvaluatorService searchEvaluatorService = new SearchEvaluatorService();
 
             var searchTexts = TestUtilities.SearchTextItems;
@@ -41,8 +41,8 @@ namespace CFSearch.xUnit
             if (!caseSensitive) SetUpperCase(ref words);
             var searchText = $"-{words[0]}";
 
-            var searchOptions = searchOptionsService.Get(searchText);
-            var searchTextsMatches = searchTexts.Where(text => searchEvaluatorService.IsMatches(searchOptions, text, caseSensitive)).ToList();
+            var searchOptions = searchOptionsService.Get(searchText, caseSensitive);            
+            var searchTextsMatches = searchTexts.Where(text => searchEvaluatorService.IsMatches(searchOptions, text)).ToList();
             var searchTextsExpected = searchTexts.Where(text => !text.Contains(words[0], GetStringComparison(caseSensitive))).ToList();
 
             Assert.True(searchTextsMatches.SequenceEqual(searchTextsExpected));
@@ -54,7 +54,7 @@ namespace CFSearch.xUnit
         public void Search_Two_Words_Finds_Items_Without_Any_Word(bool caseSensitive)
         {
             var searchConfig = new SearchConfig();
-            ISearchOptionsService searchOptionsService = new SearchOptionsService(searchConfig);
+            ISearchOptionsService searchOptionsService = new SearchOptionsService1(searchConfig);
             ISearchEvaluatorService searchEvaluatorService = new SearchEvaluatorService();
 
             var searchTexts = TestUtilities.SearchTextItems;
@@ -62,8 +62,8 @@ namespace CFSearch.xUnit
             if (!caseSensitive) SetUpperCase(ref words);
             var searchText = $"-{words[0]} -{words[1]}";
 
-            var searchOptions = searchOptionsService.Get(searchText);
-            var searchTextsMatches = searchTexts.Where(text => searchEvaluatorService.IsMatches(searchOptions, text, false)).ToList();
+            var searchOptions = searchOptionsService.Get(searchText, caseSensitive);
+            var searchTextsMatches = searchTexts.Where(text => searchEvaluatorService.IsMatches(searchOptions, text)).ToList();
             var searchTextsExpected = searchTexts.Where(text => !text.Contains(words[0], GetStringComparison(caseSensitive)) && 
                             !text.Contains(words[1], GetStringComparison(caseSensitive))).ToList();   // Text contains all words
 
@@ -76,7 +76,7 @@ namespace CFSearch.xUnit
         public void Search_Word_List_Finds_Items_Without_Any_Word(bool caseSensitive)
         {
             var searchConfig = new SearchConfig();
-            ISearchOptionsService searchOptionsService = new SearchOptionsService(searchConfig);
+            ISearchOptionsService searchOptionsService = new SearchOptionsService1(searchConfig);
             ISearchEvaluatorService searchEvaluatorService = new SearchEvaluatorService();
 
             var searchTexts = TestUtilities.SearchTextItems;
@@ -84,8 +84,8 @@ namespace CFSearch.xUnit
             if (!caseSensitive) SetUpperCase(ref words);
             var searchText = $"-({words[0]},{words[1]},{words[2]})";
 
-            var searchOptions = searchOptionsService.Get(searchText);
-            var searchTextsMatches = searchTexts.Where(text => searchEvaluatorService.IsMatches(searchOptions, text, false)).ToList();
+            var searchOptions = searchOptionsService.Get(searchText,caseSensitive);
+            var searchTextsMatches = searchTexts.Where(text => searchEvaluatorService.IsMatches(searchOptions, text)).ToList();
             var searchTextsExpected = searchTexts.Where(text => !text.Contains(words[0], GetStringComparison(caseSensitive)) &&
                                     !text.Contains(words[1], GetStringComparison(caseSensitive)) &&
                                     !text.Contains(words[2], GetStringComparison(caseSensitive))).ToList();
@@ -99,7 +99,7 @@ namespace CFSearch.xUnit
         public void Search_One_Quoted_Phrase_Finds_Items_Without_Exact_Phrase(bool caseSensitive)
         {
             var searchConfig = new SearchConfig();
-            ISearchOptionsService searchOptionsService = new SearchOptionsService(searchConfig);
+            ISearchOptionsService searchOptionsService = new SearchOptionsService1(searchConfig);
             ISearchEvaluatorService searchEvaluatorService = new SearchEvaluatorService();
 
             var searchTexts = TestUtilities.SearchTextItems;
@@ -107,8 +107,8 @@ namespace CFSearch.xUnit
             if (!caseSensitive) SetUpperCase(ref words);
             var searchText = $"-\"{words[0]} {words[1]}\"";
 
-            var searchOptions = searchOptionsService.Get(searchText);
-            var searchTextsMatches = searchTexts.Where(text => searchEvaluatorService.IsMatches(searchOptions, text, false)).ToList();
+            var searchOptions = searchOptionsService.Get(searchText, caseSensitive);
+            var searchTextsMatches = searchTexts.Where(text => searchEvaluatorService.IsMatches(searchOptions, text)).ToList();
             var searchTextsExpected = searchTexts.Where(text => !text.Contains($"{words[0]} {words[1]}", GetStringComparison(caseSensitive))).ToList();
 
             Assert.True(searchTextsMatches.SequenceEqual(searchTextsExpected));
@@ -120,7 +120,7 @@ namespace CFSearch.xUnit
         public void Search_Quoted_Phrases_List_Finds_Items_Without_Exact_Phrase(bool caseSensitive)
         {
             var searchConfig = new SearchConfig();
-            ISearchOptionsService searchOptionsService = new SearchOptionsService(searchConfig);
+            ISearchOptionsService searchOptionsService = new SearchOptionsService1(searchConfig);
             ISearchEvaluatorService searchEvaluatorService = new SearchEvaluatorService();
 
             var searchTexts = TestUtilities.SearchTextItems;
@@ -130,8 +130,8 @@ namespace CFSearch.xUnit
             if (!caseSensitive) SetUpperCase(ref words2);
             var searchText = $"-(\"{words1[0]} {words1[1]}\" \"{words2[0]} {words2[1]}\")";
 
-            var searchOptions = searchOptionsService.Get(searchText);
-            var searchTextsMatches = searchTexts.Where(text => searchEvaluatorService.IsMatches(searchOptions, text, false)).ToList();
+            var searchOptions = searchOptionsService.Get(searchText, caseSensitive);
+            var searchTextsMatches = searchTexts.Where(text => searchEvaluatorService.IsMatches(searchOptions, text)).ToList();
             var searchTextsExpected = searchTexts.Where(text => !text.Contains($"{words1[0]} {words1[1]}", GetStringComparison(caseSensitive)) &&
                                 !text.Contains($"{words2[0]} {words2[1]}", GetStringComparison(caseSensitive))).ToList();
 

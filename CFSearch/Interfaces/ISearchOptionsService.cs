@@ -17,6 +17,6 @@ namespace CFSearch.Interfaces
         /// </summary>
         /// <param name="search"></param>
         /// <returns></returns>
-        SearchOptions Get(string search);
+        SearchOptions Get(string search, bool caseSensitive);
     }
 }
